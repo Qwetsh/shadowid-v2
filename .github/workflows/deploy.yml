@@ -31,12 +31,14 @@ jobs:
       - name: Copy build to docs folder
         run: |
           rm -rf docs
-          mv dist docs
+          cp -r dist docs
 
       - name: Commit and push docs folder
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add docs
-          git commit -m "Build: Update docs folder [skip ci]" || true
-          git push
+          git commit -m "Build: Update docs folder [skip ci]" --allow-empty
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
