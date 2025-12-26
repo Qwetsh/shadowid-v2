@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/shadowid-v2/sw.js', { scope: '/shadowid-v2/' })})}
