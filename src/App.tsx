@@ -8,6 +8,7 @@ import { validateIdentity } from './lib/rules';
 import { generateRandomIdentity, getTemplates } from './lib/generators';
 import { exportCardAsPNG, exportCardAsPDF, exportAsJSON, importFromJSON } from './lib/export';
 import { Download, Upload, RotateCcw, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { useIsMobile } from './hooks/useIsMobile';
 import './index.css';
 
 const DEFAULT_IDENTITY: Identity = {
@@ -50,6 +51,14 @@ function App() {
   const cardRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const templates = getTemplates();
+  const isMobile = useIsMobile();
+
+  // Auto-show GM Verify on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setShowGMVerification(true);
+    }
+  }, [isMobile]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -148,126 +157,136 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyber-dark to-cyber-darker text-white font-cyber">
+      {/* Mobile: Show only GM Verification */}
+      {isMobile ? (
+        <div className="w-full h-screen flex flex-col">
+          {showGMVerification && <GMVerification onClose={() => setShowGMVerification(false)} isMobile={true} />}
+        </div>
+      ) : (
+        /* Desktop: Show full app */
+        <>
      
 
-      {/* Header */}
-      <header className="border-b border-cyber-border bg-cyber-darker">
-        <div className="max-w-[1800px] mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-2xl font-bold text-cyber-neon-cyan uppercase tracking-wider">
-                ShadowID v2
-              </h1>
-              <p className="text-xs text-cyber-neon-pink mt-1">Shadowrun Identity Generator</p>
+          {/* Header */}
+          <header className="border-b border-cyber-border bg-cyber-darker">
+            <div className="max-w-[1800px] mx-auto px-4 py-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h1 className="text-2xl font-bold text-cyber-neon-cyan uppercase tracking-wider">
+                    ShadowID v2
+                  </h1>
+                  <p className="text-xs text-cyber-neon-pink mt-1">Shadowrun Identity Generator</p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-cyan text-cyber-neon-cyan hover:bg-cyber-neon-cyan hover:text-cyber-darker transition-all flex items-center gap-1"
+                  >
+                    {showPreview ? <Eye size={16} /> : <EyeOff size={16} />}
+                    {showPreview ? 'Hide' : 'Show'} Preview
+                  </button>
+
+                  <button
+                    onClick={handleExportPNG}
+                    className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider bg-cyber-neon-cyan text-cyber-darker hover:bg-opacity-80 transition-all flex items-center gap-1"
+                  >
+                    <Download size={16} />
+                    Export PNG
+                  </button>
+
+                  <button
+                    onClick={handleExportPDF}
+                    className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider bg-cyber-neon-purple text-white hover:bg-opacity-80 transition-all flex items-center gap-1"
+                  >
+                    <Download size={16} />
+                    Export PDF
+                  </button>
+
+                  <button
+                    onClick={handleExportJSON}
+                    className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-green text-cyber-neon-green hover:bg-cyber-neon-green hover:text-cyber-darker transition-all flex items-center gap-1"
+                  >
+                    <Download size={16} />
+                    Export JSON
+                  </button>
+
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-yellow text-cyber-neon-yellow hover:bg-cyber-neon-yellow hover:text-cyber-darker transition-all flex items-center gap-1"
+                  >
+                    <Upload size={16} />
+                    Import JSON
+                  </button>
+
+                  <button
+                    onClick={handleReset}
+                    className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-pink text-cyber-neon-pink hover:bg-cyber-neon-pink hover:text-cyber-darker transition-all flex items-center gap-1"
+                  >
+                    <RotateCcw size={16} />
+                    Reset
+                  </button>
+
+                  <button
+                    onClick={() => setShowGMVerification(true)}
+                    className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-green text-cyber-neon-green hover:bg-cyber-neon-green hover:text-cyber-darker transition-all flex items-center gap-1"
+                  >
+                    <ShieldCheck size={16} />
+                    GM Verify
+                  </button>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportJSON}
+                    className="hidden"
+                  />
+                </div>
+              </div>
             </div>
+          </header>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => setShowPreview(!showPreview)}
-                className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-cyan text-cyber-neon-cyan hover:bg-cyber-neon-cyan hover:text-cyber-darker transition-all flex items-center gap-1"
-              >
-                {showPreview ? <Eye size={16} /> : <EyeOff size={16} />}
-                {showPreview ? 'Hide' : 'Show'} Preview
-              </button>
+          {/* Main Content */}
+          <main className="max-w-[1800px] mx-auto">
+            <div className="flex gap-4 p-4 h-[calc(100vh-200px)]">
+              {/* Left Panel - Editor */}
+              <div className="w-80 flex flex-col bg-cyber-darker rounded-lg overflow-hidden border border-cyber-border shadow-lg">
+                <EditorPanel
+                  identity={identity}
+                  onIdentityChange={handleIdentityChange}
+                  onRandomize={handleRandomize}
+                  onLoadTemplate={handleLoadTemplate}
+                  templateNames={templates.map(t => t.name)}
+                />
+              </div>
 
-              <button
-                onClick={handleExportPNG}
-                className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider bg-cyber-neon-cyan text-cyber-darker hover:bg-opacity-80 transition-all flex items-center gap-1"
-              >
-                <Download size={16} />
-                Export PNG
-              </button>
+              {/* Middle Panel - Validation */}
+              <div className="w-64 flex flex-col gap-4 overflow-y-auto">
+                <ValidationPanel issues={issues} />
+              </div>
 
-              <button
-                onClick={handleExportPDF}
-                className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider bg-cyber-neon-purple text-white hover:bg-opacity-80 transition-all flex items-center gap-1"
-              >
-                <Download size={16} />
-                Export PDF
-              </button>
-
-              <button
-                onClick={handleExportJSON}
-                className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-green text-cyber-neon-green hover:bg-cyber-neon-green hover:text-cyber-darker transition-all flex items-center gap-1"
-              >
-                <Download size={16} />
-                Export JSON
-              </button>
-
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-yellow text-cyber-neon-yellow hover:bg-cyber-neon-yellow hover:text-cyber-darker transition-all flex items-center gap-1"
-              >
-                <Upload size={16} />
-                Import JSON
-              </button>
-
-              <button
-                onClick={handleReset}
-                className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-pink text-cyber-neon-pink hover:bg-cyber-neon-pink hover:text-cyber-darker transition-all flex items-center gap-1"
-              >
-                <RotateCcw size={16} />
-                Reset
-              </button>
-
-              <button
-                onClick={() => setShowGMVerification(true)}
-                className="px-3 py-2 rounded text-xs font-bold uppercase tracking-wider border border-cyber-neon-green text-cyber-neon-green hover:bg-cyber-neon-green hover:text-cyber-darker transition-all flex items-center gap-1"
-              >
-                <ShieldCheck size={16} />
-                GM Verify
-              </button>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleImportJSON}
-                className="hidden"
-              />
+              {/* Right Panel - Card Preview */}
+              {showPreview && (
+                <div
+                  ref={cardRef}
+                  className="flex-1 flex flex-col bg-cyber-darker rounded-lg overflow-hidden border border-cyber-border shadow-lg"
+                >
+                  <CardPreview identity={identity} />
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      </header>
+          </main>
 
-      {/* Main Content */}
-      <main className="max-w-[1800px] mx-auto">
-        <div className="flex gap-4 p-4 h-[calc(100vh-200px)]">
-          {/* Left Panel - Editor */}
-          <div className="w-80 flex flex-col bg-cyber-darker rounded-lg overflow-hidden border border-cyber-border shadow-lg">
-            <EditorPanel
-              identity={identity}
-              onIdentityChange={handleIdentityChange}
-              onRandomize={handleRandomize}
-              onLoadTemplate={handleLoadTemplate}
-              templateNames={templates.map(t => t.name)}
-            />
-          </div>
+          {/* Footer */}
+          <footer className="border-t border-cyber-border bg-cyber-darker py-3 px-4 text-center text-xs text-cyber-neon-cyan opacity-60">
+            ShadowID v2 — Fictional Shadowrun Roleplay Tool | Not affiliated with Shadowrun or Catalyst Game Labs
+          </footer>
 
-          {/* Middle Panel - Validation */}
-          <div className="w-64 flex flex-col gap-4 overflow-y-auto">
-            <ValidationPanel issues={issues} />
-          </div>
-
-          {/* Right Panel - Card Preview */}
-          {showPreview && (
-            <div
-              ref={cardRef}
-              className="flex-1 flex flex-col bg-cyber-darker rounded-lg overflow-hidden border border-cyber-border shadow-lg"
-            >
-              <CardPreview identity={identity} />
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-cyber-border bg-cyber-darker py-3 px-4 text-center text-xs text-cyber-neon-cyan opacity-60">
-        ShadowID v2 — Fictional Shadowrun Roleplay Tool | Not affiliated with Shadowrun or Catalyst Game Labs
-      </footer>
-
-      {/* GM Verification Modal */}
-      {showGMVerification && <GMVerification onClose={() => setShowGMVerification(false)} />}
+          {/* GM Verification Modal */}
+          {showGMVerification && <GMVerification onClose={() => setShowGMVerification(false)} isMobile={false} />}
+        </>
+      )}
     </div>
   );
 }

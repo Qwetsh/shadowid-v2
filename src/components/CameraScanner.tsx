@@ -12,37 +12,47 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScanResult, onCl
   const [scanner, setScanner] = useState<QrScanner | null>(null);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [scannedText, setScannedText] = useState<string>('');
 
   useEffect(() => {
     const initScanner = async () => {
       try {
         if (!videoRef.current) return;
 
-        // Create new scanner instance
+        console.log('Initializing QR Scanner...');
+
+        // Create new scanner instance with improved settings
         const newScanner = new QrScanner(
           videoRef.current,
           (result) => {
+            console.log('QR Code detected:', result.data);
+            setScannedText(result.data);
             // Automatically process the scanned QR code
             onScanResult(result.data);
-            // Optional: close scanner after successful scan
-            // onClose();
           },
           {
             onDecodeError: (error) => {
               // Silently ignore decode errors (normal for video scanning)
-              console.debug('QR decode error:', error);
+              const errorMsg = typeof error === 'string' ? error : (error instanceof Error ? error.message : 'Unknown error');
+              console.debug('QR decode error:', errorMsg);
             },
-            maxScansPerSecond: 5,
+            maxScansPerSecond: 10, // Increased from 5 for better detection
+            highlightScanRegion: true, // Show scan region
+            highlightCodeOutline: true, // Show code outline
             preferredCamera: 'environment', // Use back camera on mobile
           }
         );
 
         setScanner(newScanner);
         setIsLoading(false);
+        setError('');
 
         // Start scanning
+        console.log('Starting scanner...');
         await newScanner.start();
+        console.log('Scanner started successfully');
       } catch (err) {
+        console.error('Scanner initialization error:', err);
         const errorMsg =
           err instanceof Error ? err.message : 'Failed to initialize camera. Please check permissions.';
         setError(errorMsg);
@@ -55,6 +65,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScanResult, onCl
     // Cleanup
     return () => {
       if (scanner) {
+        console.log('Destroying scanner');
         scanner.destroy();
       }
     };
@@ -124,13 +135,18 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScanResult, onCl
         </div>
 
         {/* Instructions */}
-        <div className="p-4 bg-cyber-darker border-t border-cyber-border">
-          <p className="text-xs text-cyber-neon-cyan text-center">
+        <div className="p-4 bg-cyber-darker border-t border-cyber-border space-y-2">
+          <p className="text-xs text-cyber-neon-cyan text-center font-bold">
             Point your camera at the QR code on the ID card
           </p>
-          <p className="text-xs text-cyber-neon-yellow text-center mt-2">
-            Scanning will detect automatically
+          <p className="text-xs text-cyber-neon-yellow text-center">
+            🎯 Center the QR code in the scan area
           </p>
+          {scannedText && (
+            <div className="mt-3 p-2 bg-cyber-neon-green bg-opacity-20 border border-cyber-neon-green rounded text-xs text-cyber-neon-green font-bold text-center">
+              ✅ QR Code detected! Processing...
+            </div>
+          )}
         </div>
       </div>
     </div>
