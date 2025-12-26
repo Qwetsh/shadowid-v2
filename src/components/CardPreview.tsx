@@ -209,7 +209,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
           </div>
 
           {/* Tags & Languages */}
-          {(identity.licenseTags.length > 0 || identity.languages.length > 0) && (
+          {(identity.licenseTags.length > 0 || identity.languages.length > 0 || identity.augmentations.length > 0) && (
             <div className="mb-4 text-xs border-t border-opacity-30 pt-3" style={{ borderColor: identity.accentColor }}>
               {identity.licenseTags.length > 0 && (
                 <>
@@ -224,7 +224,15 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
                   <div className="opacity-60" style={{ color: identity.accentColor }}>
                     LANGUAGES
                   </div>
-                  <div className="font-bold text-xs">{identity.languages.join(', ')}</div>
+                  <div className="font-bold text-xs mb-2">{identity.languages.join(', ')}</div>
+                </>
+              )}
+              {identity.augmentations.length > 0 && (
+                <>
+                  <div className="opacity-60" style={{ color: identity.accentColor }}>
+                    AUGMENTATIONS
+                  </div>
+                  <div className="font-bold text-xs">{identity.augmentations.join(', ')}</div>
                 </>
               )}
             </div>
