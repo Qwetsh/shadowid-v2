@@ -27,7 +27,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
     if (identity.includeQRCode) {
       generateQRCodeDataUrl(identity).then(setQrCode).catch(console.error);
     }
-  }, [identity.includeQRCode, identity.fullName, identity.alias, identity.uniqueId]);
+  }, [identity]);
 
   const statusColor = getStatusColor(identity.status);
   const barcode = generateBarcode(identity.uniqueId);
