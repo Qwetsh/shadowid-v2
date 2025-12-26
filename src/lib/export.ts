@@ -115,7 +115,7 @@ export async function generateQRCodeDataUrl(identity: Identity): Promise<string>
 
   try {
     const dataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
-      width: 200,
+      width: 300,
       margin: 1,
       color: {
         dark: '#00f0ff',

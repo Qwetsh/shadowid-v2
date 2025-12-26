@@ -233,7 +233,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
           {/* QR Code */}
           {qrCode && (
             <div className="mb-4 flex justify-center">
-              <img src={qrCode} alt="QR Code" className="w-20 h-20 border" style={{ borderColor: identity.accentColor }} />
+              <img src={qrCode} alt="QR Code" className="w-32 h-32 border" style={{ borderColor: identity.accentColor }} />
             </div>
           )}
 
